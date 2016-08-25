@@ -18,8 +18,8 @@ public class Client {
             OutputStream sout = socket.getOutputStream();
 
             // string stram
-            DataInputStream in = new DataInputStream(sin);
-            DataOutputStream out = new DataOutputStream(sout);
+            DataInputStream in = new DataInputStream(sin);//new BufferedInputStream(sin));
+            DataOutputStream out = new DataOutputStream(sout);//new BufferedOutputStream(sout));
             
             SUDTProtocol3K net = new SUDTProtocol3K(in, out);
 
@@ -27,14 +27,14 @@ public class Client {
             // BufferedReader keyboard = new BufferedReader(new InputStreamReader(System.in));
             System.out.println("Client started");
             
-            int l = behaviour.nextInt(10000);
+            int l = behaviour.nextInt(100000);
             if (l < 0) l = -l;
             byte[] data = new byte[l];
             
             boolean open = true;
             
             boolean b = net.handshake(l); 
-            assert b: "Handshake failed";
+            if (!b) throw new Exception("Handshake failed");
             System.out.println("Handshake send with length " + l);
 
             while (open) {
@@ -42,32 +42,36 @@ public class Client {
                 float rnd = behaviour.nextFloat();
                 if (rnd < 0.005F)
                 {
-                	l = behaviour.nextInt(10000);
+                	l = behaviour.nextInt(100000);
                 	data = new byte[l];
                 	b = net.changeDataLength(l);
-                	assert b : "New length set failed";
+                	if (!b) throw new Exception("New length set failed");
                 	System.out.println("New length: " + l);
                 	continue;
                 }
                 else if (rnd < 0.015F)
                 {
                 	b = net.sendFoneResetCommand();
-                	assert b : "Fone reset failed";
+                	if (!b) throw new Exception("Fone reset failed");
                 	System.out.println("Fone reset");
                 	continue;
                 }
-                else if (rnd < 0.02F)
+                else if (rnd < 0.02F && false)
                 {
                 	b = net.closeConnection();
-                	assert b : "Invalid connection close";
+                	if (!b) throw new Exception("Invalid connection close");
                 	System.out.println("Connection closed");
                 	open = false;
                 	break;
                 }
                 else
                 {
-                	behaviour.nextBytes(data);
-                	assert net.sendData(data);
+                	//behaviour.nextBytes(data);
+                	for (int i=0; i<data.length; i++)
+                		data[i] = 22;
+                	if (data.length != l) System.out.println("FUCK");
+                	b = net.sendData(data);
+                	if (!b) throw new Exception("Server cannot receive data!");
                 	System.out.print(".");
                 	continue;
                 }
