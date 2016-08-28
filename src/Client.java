@@ -3,6 +3,17 @@ import java.util.Random;
 import java.io.*;
 
 public class Client {
+	static byte[] data;
+	
+	static void allocate(int newSize)
+	{
+		data = new byte[newSize];
+		for (int i = 0; i < newSize; i++)
+		{
+			data[i] = (byte) (i % 10);
+		}
+	}
+	
     public static void main(String[] ar) {
         int serverPort = 9090;
         String address = "127.0.0.1";
@@ -27,9 +38,10 @@ public class Client {
             // BufferedReader keyboard = new BufferedReader(new InputStreamReader(System.in));
             System.out.println("Client started");
             
-            int l = behaviour.nextInt(10000);
+            int l = behaviour.nextInt(100000);
             if (l < 0) l = -l;
-            byte[] data = new byte[l];
+            //byte[] data = new byte[l];
+            allocate(l);
             
             boolean open = true;
             
@@ -42,8 +54,8 @@ public class Client {
                 float rnd = behaviour.nextFloat();
                 if (rnd < 0.005F)
                 {
-                	l = behaviour.nextInt(10000);
-                	data = new byte[l];
+                	l = behaviour.nextInt(100000);
+                	allocate(l);
                 	b = net.changeDataLength(l);
                 	assert b : "New length set failed";
                 	System.out.println("New length: " + l);
@@ -66,8 +78,9 @@ public class Client {
                 }
                 else
                 {
-                	behaviour.nextBytes(data);
-                	assert net.sendData(data);
+                	//behaviour.nextBytes(data);
+                	b = net.sendData(data);
+                	assert b: "Data sending error";
                 	System.out.print(".");
                 	continue;
                 }
